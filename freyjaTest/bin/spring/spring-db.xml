@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+    		http://www.springframework.org/schema/cache	http://www.springframework.org/schema/cache/spring-cache.xsd
+            ">
+
+
+	<context:property-placeholder location="classpath:jdbc.properties"
+		ignore-unresolvable="true" />
+
+
+	<bean id="parentDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+
+
+
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="1" />
+		<property name="minIdle" value="1" />
+		<property name="maxActive" value="50" />
+
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="60000" />
+
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+
+		<property name="removeAbandoned" value="false" />
+
+		<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize"
+			value="20" />
+	</bean>
+
+
+	<bean id="guyu_pu_game_0" parent="parentDataSource">
+		<property name="url" value="${mysql0.url}" />
+		<property name="username" value="${mysql0.user}" />
+		<property name="password" value="${mysql0.password}" />
+	</bean>
+
+	<bean id="guyu_pu_game_1" parent="parentDataSource">
+		<property name="url" value="${mysql1.url}" />
+		<property name="username" value="${mysql1.user}" />
+		<property name="password" value="${mysql1.password}" />
+	</bean>
+
+	<bean id="baseDataSource" parent="parentDataSource">
+		<property name="url" value="${mysql.url}" />
+		<property name="username" value="${mysql.user}" />
+		<property name="password" value="${mysql.password}" />
+	</bean>
+
+	<bean id="dataSource" class="org.freyja.v2.jdbc.ds.DynamicDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<entry key="guyu_pu_game_0" value-ref="guyu_pu_game_0" />
+				<entry key="guyu_pu_game_1" value-ref="guyu_pu_game_1" />
+			</map>
+		</property>
+		<property name="defaultTargetDataSource" ref="baseDataSource" />
+	</bean>
+
+
+	<bean id="fryjaTemplate" class="org.freyja.v2.jdbc.FreyjaJdbcTemplate">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+		<property name="packagesToScan" value="com.guyu.bean" />
+		<property name="freyjaProperties">
+			<value>
+				show_sql=true
+				db_num=2
+				table_num=5
+				id_sub_num=1000000
+				sub_db_name=guyu_pu_game
+			</value>
+		</property>
+	</bean>
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+</beans>

@@ -10,8 +10,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "file:./config/spring/spring.xml",
-		"file:./config/spring/spring-db.xml" })
+@ContextConfiguration(locations = { "classpath:spring/spring.xml",
+		"classpath:spring/spring-db.xml" })
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class })
 public class ApiTest {
 
